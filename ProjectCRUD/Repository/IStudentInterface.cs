@@ -11,5 +11,17 @@ namespace ProjectCRUD.Repository
 
         Task<IList<Student>> getAllStudents();
 
+        Task<Student> getStudentsById(Guid studentId);
+
+        Task<IList<Gender>> getGender();
+
+        Task<bool> UserExists(Guid studentId);
+
+        Task<Student> UpdateUser(Guid studentId, Student request);
+
+        Task<Student> deleteUser(Guid studentId);
+
+        Task<Student> addStudent(Student student);
+
     }
 }

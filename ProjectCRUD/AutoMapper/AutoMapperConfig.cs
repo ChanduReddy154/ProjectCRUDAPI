@@ -16,6 +16,11 @@ namespace ProjectCRUD.AutoMapper
             CreateMap<StudentViewModel, Student>().ReverseMap();
             CreateMap<GenderViewModel, Gender>().ReverseMap();
             CreateMap<AddressViewModel, Address>().ReverseMap();
+            CreateMap<UpdateStudentViewModel, Student>()
+                .AfterMap<UpdateStudentAfterMap>();
+            CreateMap<AddStudentViewModel, Student>()
+               .AfterMap<AddStudentAfterMap>();
+
         }
 
     }
