@@ -1,9 +1,11 @@
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
@@ -12,6 +14,7 @@ using ProjectCRUD.Models;
 using ProjectCRUD.Repository;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -43,10 +46,13 @@ namespace ProjectCRUD
             string connectionString = Configuration["ConnectionStrings:DefaultConnection"];
 
             services.AddControllers();
+            services.AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<Startup>());
             //  services.AddDbContext<ProjectDBContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
             services.AddDbContext<ProjectDBContext>(options => options.UseSqlServer(connectionString));
 
             services.AddTransient<IStudentInterface, StudentRepository>();
+            services.AddTransient<IImageInterface, ImageRepository>();
+
             services.AddAutoMapper(typeof(AutoMapperConfig));
 
            
@@ -67,7 +73,12 @@ namespace ProjectCRUD
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "ProjectCRUD v1"));
             }
-
+            app.UseHttpsRedirection();
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(Path.Combine(env.ContentRootPath, "ImagesAndFiles")),
+                RequestPath = "/ImagesAndFiles"
+            });
             app.UseRouting();
             app.UseCors("angularApplication");
             app.UseAuthorization();

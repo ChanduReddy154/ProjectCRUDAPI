@@ -23,5 +23,7 @@ namespace ProjectCRUD.Repository
 
         Task<Student> addStudent(Student student);
 
+        Task<bool> updateProfileImage(Guid studentId, string profieImageUrl);
+
     }
 }

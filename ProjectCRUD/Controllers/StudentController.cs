@@ -6,6 +6,8 @@ using ProjectCRUD.Repository;
 using ProjectCRUD.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -17,11 +19,13 @@ namespace ProjectCRUD.Controllers
     {
         private readonly IStudentInterface _studentInterface;
         private readonly IMapper _mapper;
+        private readonly IImageInterface _imageInterface;
 
-        public StudentController(IStudentInterface studentInterface, IMapper mapper)
+        public StudentController(IStudentInterface studentInterface, IMapper mapper, IImageInterface imageInterface)
         {
             _studentInterface = studentInterface;
             _mapper = mapper;
+            _imageInterface = imageInterface;
         }
 
         [HttpPost("AddStudent")]
@@ -48,7 +52,7 @@ namespace ProjectCRUD.Controllers
             return Ok(mapResult);
         }
         [HttpGet("GetStudentsById"), ActionName("getStudentsById")]
-        public async Task<IActionResult> getStudentsById(Guid studentId)
+        public async Task<IActionResult> getStudentsById([Required]Guid studentId)
         {
             if (!ModelState.IsValid)
             {
@@ -80,21 +84,19 @@ namespace ProjectCRUD.Controllers
                 return BadRequest(ModelState);
 
             }
-
             var user = await _studentInterface.UserExists(studentId);
 
             if (user)
             {
                 var result = await _studentInterface.UpdateUser(studentId, _mapper.Map<Student>(request));
+                var mapResult = _mapper.Map<Student>(result);
                 if (result != null)
                 {
-                    return Ok(_mapper.Map<Student>(result));
+                    return Ok(mapResult);
                 }
             }
 
             return NotFound();
-
-
         }
 
         [HttpDelete("DeleteUser")]
@@ -106,7 +108,7 @@ namespace ProjectCRUD.Controllers
             }
             var user = await _studentInterface.UserExists(studentId);
 
-            if(user)
+            if (user)
             {
                 var result = await _studentInterface.deleteUser(studentId);
                 var mapResult = _mapper.Map<Student>(result);
@@ -114,6 +116,27 @@ namespace ProjectCRUD.Controllers
             }
             return NotFound();
 
+        }
+
+
+        [HttpPost]
+        [Route("{studentId:guid}/upload-image")]
+        public async Task<IActionResult> uploadImage(Guid studentId, IFormFile profileImage)
+        {
+            if (await _studentInterface.UserExists(studentId))
+            {
+                var fileName = Guid.NewGuid() + Path.GetExtension(profileImage.FileName);
+                var fileImagePath = await _imageInterface.uploadImage(profileImage, fileName);
+
+                var result = await _studentInterface.updateProfileImage(studentId, fileImagePath);
+                if (result)
+                {
+                    return Ok(fileImagePath);
+                }
+
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error While uploading Image");
+            }
+            return NotFound();
         }
     }
 }

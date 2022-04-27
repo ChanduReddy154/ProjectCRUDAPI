@@ -54,6 +54,19 @@ namespace ProjectCRUD.Repository
             return result;
         }
 
+        public async Task<bool> updateProfileImage(Guid studentId, string profieImageUrl)
+        {
+            var student = await getStudentsById(studentId);
+
+            if(student != null)
+            {
+                student.ProfileImageURL = profieImageUrl;
+                await _projectDBContext.SaveChangesAsync();
+                return true;
+            }
+            return false;
+        }
+
         public async Task<Student> UpdateUser(Guid studentId, Student request)
         {
             var existingStudent = await getStudentsById(studentId);
